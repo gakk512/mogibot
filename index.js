@@ -1,6 +1,5 @@
 const express = require("express");
 const app = express();
-require("dotenv").config();
 
 app.get("/", (req, res) => {
   res.send("Bot is running!");
@@ -95,9 +94,7 @@ client.on("messageCreate", async message => {
         .map(id => `<@${id}>`)
         .join("\n");
 
-      message.channel.send(
-        `🔒 6 players have joined\n${names}`
-      );
+      message.channel.send(`🔒 6 players have joined\n${names}`);
 
       startVote(message.channel, lobby);
     }
@@ -221,8 +218,7 @@ function createTeams(channel, lobby, type) {
 
   if (type === "ffa") {
     channel.send(
-      "🎮 Starting FFA\n" +
-      players.map(p => `<@${p}>`).join("\n")
+      "🎮 Starting FFA\n" + players.map(p => `<@${p}>`).join("\n")
     );
   }
 
