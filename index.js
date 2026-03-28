@@ -9,24 +9,38 @@ app.listen(process.env.PORT || 3000, () => {
   console.log("Web server is running");
 });
 
-const discord = require("discord.js");
-
-const client = new discord.Client({
-  intents: Object.values(discord.GatewayIntentBits)
-});
-
 const {
+  Client,
+  GatewayIntentBits,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   Events
 } = require("discord.js");
 
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
+});
+
 const lobbies = new Map();
 const MAX = 6;
 
 client.on(Events.ClientReady, () => {
   console.log("Logged in as " + client.user.tag);
+});
+
+client.on("error", console.error);
+
+process.on("unhandledRejection", error => {
+  console.error("Unhandled promise rejection:", error);
+});
+
+process.on("uncaughtException", error => {
+  console.error("Uncaught exception:", error);
 });
 
 client.on("messageCreate", async message => {
@@ -256,6 +270,8 @@ ${team2.map(p => `<@${p}>`).join("\n")}`
     );
   }
 }
+
+console.log("TOKEN exists?", !!process.env.TOKEN);
 
 client.login(process.env.TOKEN)
   .then(() => console.log("Bot login success"))
