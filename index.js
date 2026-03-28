@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 
+// ===== Web server for Render =====
 app.get("/", (req, res) => {
   res.send("Bot is running!");
 });
@@ -9,6 +10,7 @@ app.listen(process.env.PORT || 3000, () => {
   console.log("Web server is running");
 });
 
+// ===== Discord.js =====
 const {
   Client,
   GatewayIntentBits,
@@ -18,6 +20,7 @@ const {
   Events
 } = require("discord.js");
 
+// 必要最低限のIntentだけにする
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -29,6 +32,7 @@ const client = new Client({
 const lobbies = new Map();
 const MAX = 6;
 
+// ===== 起動ログ =====
 client.on(Events.ClientReady, () => {
   console.log("Logged in as " + client.user.tag);
 });
@@ -43,6 +47,7 @@ process.on("uncaughtException", error => {
   console.error("Uncaught exception:", error);
 });
 
+// ===== メッセージコマンド =====
 client.on("messageCreate", async message => {
   if (message.author.bot) return;
 
@@ -59,7 +64,7 @@ client.on("messageCreate", async message => {
 
   const lobby = lobbies.get(channelId);
 
-  // Player list
+  // ===== !list =====
   if (message.content === "!list") {
     if (lobby.players.size === 0) {
       return message.reply("There are currently no participants.");
@@ -76,7 +81,7 @@ client.on("messageCreate", async message => {
     return;
   }
 
-  // Reset
+  // ===== !reset =====
   if (message.content === "!reset") {
     lobby.players.clear();
     lobby.closed = false;
@@ -87,7 +92,7 @@ client.on("messageCreate", async message => {
     return;
   }
 
-  // Join
+  // ===== !c (join) =====
   if (message.content === "!c") {
     if (lobby.closed) {
       return message.reply("The match is already closed.");
@@ -118,7 +123,7 @@ client.on("messageCreate", async message => {
     return;
   }
 
-  // Leave
+  // ===== !d (leave) =====
   if (message.content === "!d") {
     if (lobby.closed) {
       return message.reply("⚠️ The match is closed so you cannot leave.");
@@ -138,6 +143,7 @@ client.on("messageCreate", async message => {
   }
 });
 
+// ===== 投票開始 =====
 function startVote(channel, lobby) {
   lobby.voting = true;
   lobby.votes = {};
@@ -169,6 +175,7 @@ function startVote(channel, lobby) {
   }, 60000);
 }
 
+// ===== ボタン投票 =====
 client.on("interactionCreate", async interaction => {
   if (!interaction.isButton()) return;
   if (!interaction.customId.startsWith("vote_")) return;
@@ -191,6 +198,7 @@ client.on("interactionCreate", async interaction => {
   });
 });
 
+// ===== 投票終了 =====
 function finishVote(channel, lobby) {
   const count = {
     ffa: 0,
@@ -222,6 +230,7 @@ function finishVote(channel, lobby) {
   createTeams(channel, lobby, result);
 }
 
+// ===== シャッフル =====
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -231,6 +240,7 @@ function shuffle(arr) {
   return arr;
 }
 
+// ===== チーム作成 =====
 function createTeams(channel, lobby, type) {
   const players = shuffle([...lobby.players]);
 
@@ -275,9 +285,17 @@ ${team2.map(p => `<@${p}>`).join("\n")}`
   }
 }
 
+// ===== ログイン確認ログ =====
 console.log("TOKEN exists?", !!process.env.TOKEN);
+console.log("TOKEN length:", process.env.TOKEN ? process.env.TOKEN.length : 0);
 console.log("About to login Discord...");
 
-client.login(process.env.TOKEN)
+// ===== Discordログイン（10秒タイムアウト付き） =====
+Promise.race([
+  client.login(process.env.TOKEN.trim()),
+  new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("Discord login timed out after 10 seconds")), 10000)
+  )
+])
   .then(() => console.log("Bot login success"))
   .catch(err => console.error("Bot login failed:", err));
