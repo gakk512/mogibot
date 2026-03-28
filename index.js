@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+require("dotenv").config();
 
 app.get("/", (req, res) => {
   res.send("Bot is running!");
@@ -8,7 +9,8 @@ app.get("/", (req, res) => {
 app.listen(process.env.PORT || 3000, () => {
   console.log("Web server is running");
 });
-const discord = require('discord.js');
+
+const discord = require("discord.js");
 
 const client = new discord.Client({
   intents: Object.values(discord.GatewayIntentBits)
@@ -29,7 +31,6 @@ client.on(Events.ClientReady, () => {
 });
 
 client.on("messageCreate", async message => {
-
   if (message.author.bot) return;
 
   const channelId = message.channel.id;
@@ -47,7 +48,6 @@ client.on("messageCreate", async message => {
 
   // Player list
   if (message.content === "!list") {
-
     if (lobby.players.size === 0) {
       return message.reply("There are currently no participants.");
     }
@@ -65,20 +65,17 @@ client.on("messageCreate", async message => {
 
   // Reset
   if (message.content === "!reset") {
-
     lobby.players.clear();
     lobby.closed = false;
     lobby.voting = false;
     lobby.votes = {};
 
     message.channel.send("🔄 The mock match has been reset.");
-
     return;
   }
 
   // Join
   if (message.content === "!c") {
-
     if (lobby.closed)
       return message.reply("The match is already closed.");
 
@@ -92,7 +89,6 @@ client.on("messageCreate", async message => {
     );
 
     if (lobby.players.size === MAX) {
-
       lobby.closed = true;
 
       const names = [...lobby.players]
@@ -111,7 +107,6 @@ client.on("messageCreate", async message => {
 
   // Leave
   if (message.content === "!d") {
-
     if (lobby.closed)
       return message.reply("⚠️ The match is closed so you cannot leave.");
 
@@ -126,16 +121,13 @@ client.on("messageCreate", async message => {
 
     return;
   }
-
 });
 
 function startVote(channel, lobby) {
-
   lobby.voting = true;
   lobby.votes = {};
 
   const row = new ActionRowBuilder().addComponents(
-
     new ButtonBuilder()
       .setCustomId("vote_ffa")
       .setLabel("FFA")
@@ -150,7 +142,6 @@ function startVote(channel, lobby) {
       .setCustomId("vote_3v3")
       .setLabel("3v3")
       .setStyle(ButtonStyle.Primary)
-
   );
 
   channel.send({
@@ -164,7 +155,6 @@ function startVote(channel, lobby) {
 }
 
 client.on("interactionCreate", async interaction => {
-
   if (!interaction.isButton()) return;
   if (!interaction.customId.startsWith("vote_")) return;
 
@@ -172,12 +162,10 @@ client.on("interactionCreate", async interaction => {
   if (!lobby) return;
 
   if (!lobby.players.has(interaction.user.id)) {
-
     return interaction.reply({
       content: "Only participants can vote.",
       ephemeral: true
     });
-
   }
 
   lobby.votes[interaction.user.id] = interaction.customId;
@@ -186,11 +174,9 @@ client.on("interactionCreate", async interaction => {
     content: "Your vote has been recorded.",
     ephemeral: true
   });
-
 });
 
 function finishVote(channel, lobby) {
-
   const count = {
     ffa: 0,
     "2v2": 0,
@@ -198,24 +184,18 @@ function finishVote(channel, lobby) {
   };
 
   for (const v of Object.values(lobby.votes)) {
-
     if (v === "vote_ffa") count.ffa++;
     if (v === "vote_2v2") count["2v2"]++;
     if (v === "vote_3v3") count["3v3"]++;
-
   }
 
   const max = Math.max(...Object.values(count));
-
-  const winners = Object.keys(count)
-    .filter(k => count[k] === max);
+  const winners = Object.keys(count).filter(k => count[k] === max);
 
   if (winners.length > 1) {
-
     channel.send("⚠️ It's a tie. Revoting...");
     startVote(channel, lobby);
     return;
-
   }
 
   const result = winners[0];
@@ -225,37 +205,28 @@ function finishVote(channel, lobby) {
   );
 
   createTeams(channel, lobby, result);
-
 }
 
 function shuffle(arr) {
-
   for (let i = arr.length - 1; i > 0; i--) {
-
     const j = Math.floor(Math.random() * (i + 1));
-
     [arr[i], arr[j]] = [arr[j], arr[i]];
-
   }
 
   return arr;
 }
 
 function createTeams(channel, lobby, type) {
-
   const players = shuffle([...lobby.players]);
 
   if (type === "ffa") {
-
     channel.send(
       "🎮 Starting FFA\n" +
       players.map(p => `<@${p}>`).join("\n")
     );
-
   }
 
   if (type === "2v2") {
-
     const team1 = players.slice(0, 2);
     const team2 = players.slice(2, 4);
     const team3 = players.slice(4, 6);
@@ -272,11 +243,9 @@ ${team2.map(p => `<@${p}>`).join("\n")}
 Team 3
 ${team3.map(p => `<@${p}>`).join("\n")}`
     );
-
   }
 
   if (type === "3v3") {
-
     const team1 = players.slice(0, 3);
     const team2 = players.slice(3, 6);
 
@@ -289,9 +258,7 @@ ${team1.map(p => `<@${p}>`).join("\n")}
 Team 2
 ${team2.map(p => `<@${p}>`).join("\n")}`
     );
-
   }
-
 }
 
-client.login(process.env.BOT_TOKEN)
+client.login(process.env.TOKEN);
