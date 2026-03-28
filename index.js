@@ -89,11 +89,13 @@ client.on("messageCreate", async message => {
 
   // Join
   if (message.content === "!c") {
-    if (lobby.closed)
+    if (lobby.closed) {
       return message.reply("The match is already closed.");
+    }
 
-    if (lobby.players.has(message.author.id))
+    if (lobby.players.has(message.author.id)) {
       return message.reply("You have already joined.");
+    }
 
     lobby.players.add(message.author.id);
 
@@ -118,11 +120,13 @@ client.on("messageCreate", async message => {
 
   // Leave
   if (message.content === "!d") {
-    if (lobby.closed)
+    if (lobby.closed) {
       return message.reply("⚠️ The match is closed so you cannot leave.");
+    }
 
-    if (!lobby.players.has(message.author.id))
+    if (!lobby.players.has(message.author.id)) {
       return message.reply("You are not participating.");
+    }
 
     lobby.players.delete(message.author.id);
 
@@ -272,6 +276,7 @@ ${team2.map(p => `<@${p}>`).join("\n")}`
 }
 
 console.log("TOKEN exists?", !!process.env.TOKEN);
+console.log("About to login Discord...");
 
 client.login(process.env.TOKEN)
   .then(() => console.log("Bot login success"))
