@@ -257,4 +257,6 @@ ${team2.map(p => `<@${p}>`).join("\n")}`
   }
 }
 
-client.login(process.env.TOKEN);
+client.login(process.env.TOKEN)
+  .then(() => console.log("Bot login success"))
+  .catch(err => console.error("Bot login failed:", err));
